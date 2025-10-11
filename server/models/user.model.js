@@ -17,7 +17,7 @@ const userSchema = mongoose.Schema(
     },
     avatar: {
       type: String,
-      default: " ",
+      default: "",
     },
     mobile: {
       type: Number,
@@ -26,6 +26,14 @@ const userSchema = mongoose.Schema(
     verify_email: {
       type: Boolean,
       default: false,
+    },
+    accessToken: {
+      type: String,
+      default: "",
+    },
+    refreshToken: {
+      type: String,
+      default: "",
     },
     last_login_date: {
       type: Date,

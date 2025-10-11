@@ -2,7 +2,18 @@ import UserModel from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import sendEmailFun from "../config/sendEmail.js";
-import VerifificationEmail from "../utils/verifyEmailTemplates.js";
+import VerificationEmail from "../utils/verifyEmailTemplates.js";
+import generateAccessToken from "../utils/generatedAccessToken.js";
+import generateRefreshToken from "../utils/generatedRefreshToken.js";
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
+
+// Configuration
+cloudinary.config({
+  cloud_name: process.env.cloudinary_Config_Cloud_Name,
+  api_key: process.env.cloudinary_Config_api_key,
+  api_secret: process.env.cloudinary_Config_api_secret, // Click 'View API Keys' above to copy your API secret
+});
 
 export async function registerUserController(request, response) {
   try {
@@ -45,7 +56,7 @@ export async function registerUserController(request, response) {
       sendTo: email,
       subject: "Verify email from Ecommarce app",
       text: "",
-      html: VerifificationEmail(name, verifyCode),
+      html: VerificationEmail(name, verifyCode),
     });
 
     //Create JWT token for verification purpose
@@ -107,6 +118,255 @@ export async function verifyEmailController(request, response) {
         message: "Verification OTP expired",
       });
     }
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+export async function loginUserController(request, response) {
+  try {
+    const { email, password } = request.body;
+    const user = await UserModel.findOne({ email: email });
+
+    if (!user) {
+      return response.status(400).json({
+        message: "user not Registered",
+        error: true,
+        success: false,
+      });
+    }
+    if (user.status !== "Active") {
+      return response.status(400).json({
+        message: "user is Blocked, contact admin",
+        error: true,
+        success: false,
+      });
+    }
+
+    const checkPassword = await bcrypt.compare(password, user.password);
+    if (!checkPassword) {
+      return response.status(400).json({
+        message: "check your password",
+        error: true,
+        success: false,
+      });
+    }
+
+    const accessToken = await generateAccessToken(user._id);
+    const refreshToken = await generateRefreshToken(user._id);
+
+    const updateUser = await UserModel.findByIdAndUpdate(user._id, {
+      last_login_date: new Date(),
+      // accessToken: accessToken,
+    });
+
+    const cookieOptions = {
+      httpOnly: true,
+      // secure: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "None",
+    };
+    response.cookie("accessToken", accessToken, cookieOptions);
+    response.cookie("refreshToken", refreshToken, cookieOptions);
+
+    return response.json({
+      message: "Login successful",
+      error: false,
+      success: true,
+      data: {
+        accessToken,
+        refreshToken,
+      },
+    });
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+export async function logoutController(request, response) {
+  try {
+    const userid = request.user.id;
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    };
+
+    response.clearCookie("accessToken", cookieOptions);
+    response.clearCookie("refreshToken", cookieOptions);
+
+    const removeRefreshToken = await UserModel.findByIdAndUpdate(userid, {
+      refreshToken: "",
+    });
+
+    return response.json({
+      message: "Logout successful",
+      error: false,
+      success: true,
+    });
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+//image Upload
+let imagesArr = [];
+export async function userAvatarController(request, response) {
+  try {
+    imagesArr = [];
+
+    const userid = request.user.id;
+    const images = request.files;
+
+    const user = await UserModel.findOne({ _id: userid });
+
+    if (!user) {
+      return response.status(500).json({
+        message: "User Not found",
+        error: true,
+        success: false,
+      });
+    }
+
+    ///frist remove image from cloudinary
+
+    const imgUrl = user.avatar;
+
+    const urlArr = imgUrl.split("/");
+    const avatar_image = urlArr[urlArr.length - 1];
+
+    const imageName = avatar_image.split(".")[0];
+
+    if (imageName) {
+      const res = await cloudinary.uploader.destroy(
+        imageName,
+        (error, result) => {
+          // console.log(error, res)
+        }
+      );
+    }
+
+    const options = {
+      use_filename: true,
+      unique_filename: false,
+      overwrite: false,
+    };
+
+    for (let i = 0; i < images?.length; i++) {
+      const img = await cloudinary.uploader.upload(
+        images[i].path,
+        options,
+        function (error, result) {
+          imagesArr.push(result.secure_url);
+          fs.unlinkSync(`uploads/${images[i].filename}`);
+        }
+      );
+    }
+    user.avatar = imagesArr[0];
+    await user.save();
+    return response.status(200).json({
+      _id: userid,
+      avatar: imagesArr[0],
+      success: true,
+      message: "Avatar uploaded successfully",
+    });
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+export async function removeImageFromCloudinary(request, response) {
+  const imgUrl = request.query.img;
+
+  const urlArr = imgUrl.split("/");
+  const image = urlArr[urlArr.length - 1];
+
+  const imageName = image.split(".")[0];
+
+  if (imageName) {
+    const res = await cloudinary.uploader.destroy(
+      imageName,
+      (error, result) => {
+        // console.log(error, res)
+      }
+    );
+
+    if (res) {
+      response.status(200).send(res);
+    }
+  }
+}
+
+//update user details
+
+export async function updateUserDetails(request, response) {
+  try {
+    const userId = request.userid;
+    const { name, email, mobile, password } = request.body;
+
+    const userExit = await UserModel.findOne(userId);
+
+    if (userExit) {
+      return response.status(400).send("The User cannot be updated!");
+    }
+
+    let verifyCode = "";
+    if (email !== userExit.email) {
+      verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
+    let hashedPassword = "";
+    if (password) {
+      const salt = await bcryptjs.genSalt(10);
+      hashedPassword = await bcryptjs.hash(password.salt);
+    } else {
+      hashedPassword = userExit.password;
+    }
+
+    const updateUser = await UserModel.findByIdAndUpdate(
+      userId,
+      {
+        name: name,
+        mobile: mobile,
+        email: email,
+        verify_email: email !== userExit.email ? false : true,
+        password: hashedPassword,
+        otp: verifyCode !== "" ? verifyCode : null,
+        otpExpiry: verifyCode !== "" ? Date.now() + 600000 : "",
+      },
+      { new: true }
+    );
+    if (email !== userExit.email) {
+      await sendEmailFun({
+        sendTo: email,
+        subject: "Verify email from Ecommarce App",
+        text: "",
+        html: VerificationEmail(name, verifyCode),
+      });
+    }
+    return response.json({
+      message: "User Update Successfully",
+      error: false,
+      success: true,
+      user: updateUser,
+    });
   } catch (error) {
     return response.status(500).json({
       message: error.message || error,
