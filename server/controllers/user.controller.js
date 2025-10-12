@@ -141,7 +141,14 @@ export async function loginUserController(request, response) {
     }
     if (user.status !== "Active") {
       return response.status(400).json({
-        message: "user is Blocked, contact admin",
+        message: "contact to admin",
+        error: true,
+        success: false,
+      });
+    }
+    if (user.verify_email !== true) {
+      return response.status(400).json({
+        message: "Your email is not verify yet Please verify your email frist",
         error: true,
         success: false,
       });
@@ -315,29 +322,29 @@ export async function removeImageFromCloudinary(request, response) {
 }
 
 //update user details
-
 export async function updateUserDetails(request, response) {
   try {
-    const userId = request.userid;
+    const userId = request.params.id;
     const { name, email, mobile, password } = request.body;
 
-    const userExit = await UserModel.findOne(userId);
+    const userExist = await UserModel.findById(userId);
 
-    if (userExit) {
+    if (!userExist) {
       return response.status(400).send("The User cannot be updated!");
     }
 
     let verifyCode = "";
-    if (email !== userExit.email) {
+
+    if (email !== userExist.email) {
       verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
     }
 
-    let hashedPassword = "";
+    let hashPassword = "";
     if (password) {
       const salt = await bcryptjs.genSalt(10);
-      hashedPassword = await bcryptjs.hash(password.salt);
+      hashPassword = await bcryptjs.hash(password, salt);
     } else {
-      hashedPassword = userExit.password;
+      hashPassword = userExist.password;
     }
 
     const updateUser = await UserModel.findByIdAndUpdate(
@@ -346,14 +353,14 @@ export async function updateUserDetails(request, response) {
         name: name,
         mobile: mobile,
         email: email,
-        verify_email: email !== userExit.email ? false : true,
-        password: hashedPassword,
+        verify_email: email !== userExist.email ? false : true,
+        password: hashPassword,
         otp: verifyCode !== "" ? verifyCode : null,
-        otpExpiry: verifyCode !== "" ? Date.now() + 600000 : "",
+        otpExpiry: verifyCode !== "" ? Date.now() + 600000 : null,
       },
       { new: true }
     );
-    if (email !== userExit.email) {
+    if (email !== userExist.email) {
       await sendEmailFun({
         sendTo: email,
         subject: "Verify email from Ecommarce App",
@@ -367,6 +374,50 @@ export async function updateUserDetails(request, response) {
       success: true,
       user: updateUser,
     });
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+//forgot password
+export async function forgotPasswordController(request, response) {
+  try {
+    const { email } = request.body;
+
+    const user = await UserModel.findOne({ email: email });
+
+    if (!user) {
+      return response.status(400).json({
+        message: "Email not available",
+        error: true,
+        success: false,
+      });
+    } else {
+      let verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+      user.otp = verifyCode;
+      user.otpExpiry = Date.now() + 600000;
+      
+
+      await user.save();
+
+      await sendEmailFun({
+        sendTo: email,
+        subject: "Verify email from Ecommarce app",
+        text: "",
+        html: VerificationEmail(user.name, verifyCode),
+      });
+
+      return response.json({
+        message: "Chek your email",
+        error: false,
+        success: true,
+      });
+    }
   } catch (error) {
     return response.status(500).json({
       message: error.message || error,

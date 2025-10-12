@@ -2,79 +2,22 @@ import mongoose from "mongoose";
 
 const userSchema = mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: [true, "Provide name"],
-    },
-    email: {
-      type: String,
-      required: [true, "Provide email"],
-      unique: true,
-    },
-    password: {
-      type: String,
-      required: [true, "Provide password"],
-    },
-    avatar: {
-      type: String,
-      default: "",
-    },
-    mobile: {
-      type: Number,
-      default: null,
-    },
-    verify_email: {
-      type: Boolean,
-      default: false,
-    },
-    accessToken: {
-      type: String,
-      default: "",
-    },
-    refreshToken: {
-      type: String,
-      default: "",
-    },
-    last_login_date: {
-      type: Date,
-      default: null,
-    },
-    status: {
-      type: String,
-      enum: ["Active", "Inactive", "Suspended"],
-      default: "Active",
-    },
-    address_details: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: "Address",
-      },
-    ],
-    shopping_cart: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: "CartProduct",
-      },
-    ],
-    orderHistory: [
-      {
-        type: mongoose.Schema.ObjectId,
-        ref: "Order",
-      },
-    ],
-    otp: {
-      type: String,
-    },
-    otpExpiry: {
-      type: Date,
-    },
-
-    role: {
-      type: String,
-      enum: ["user", "admin"],
-      default: "user",
-    },
-  },
+    name: {type: String, required: [true, "Provide name"],},
+    email: {type: String,required: [true, "Provide email"],unique: true,},
+    password: {type: String,required: [true, "Provide password"],},
+    avatar: {type: String,default: "",},
+    mobile: {type: Number,default: null,},
+    verify_email: {type: Boolean,default: false,},
+    accessToken: {type: String,default: "",},
+    refreshToken: {type: String,default: "",},
+    last_login_date: {type: Date,default: null,},
+    status: {type: String, enum: ["Active", "Inactive", "Suspended"],default: "Active",},
+    address_details: [{type: mongoose.Schema.ObjectId,ref: "Address",},],
+    shopping_cart: [{type: mongoose.Schema.ObjectId,ref: "CartProduct",},],
+    orderHistory: [{type: mongoose.Schema.ObjectId, ref: "Order",},],
+    otp: {type: String,},
+    otpExpiry: {type: Date,},
+    role: {type: String,enum: ["user", "admin"],default: "user",},},
   { timestamps: true }
 );
 const UserModel = mongoose.model("User", userSchema);

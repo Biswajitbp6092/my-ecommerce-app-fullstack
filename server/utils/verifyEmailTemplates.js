@@ -1,4 +1,4 @@
-const VerificationEmail = (username, otp) => {
+const VerificationEmail = (name, otp) => {
   return `
     <!DOCTYPE html>
     <html lang="en">
@@ -56,7 +56,7 @@ const VerificationEmail = (username, otp) => {
     <body>
     <div class="container">
         <div class="header">
-            <h1>hii ${username} please verify your Email Address</h1>
+            <h1>hii ${name} please verify your Email Address</h1>
         </div>
         <div class="content">
             <p>Thank you for registring with Spicez Gold. Please use the OTP below to verify your email Address :</p>
