@@ -401,7 +401,6 @@ export async function forgotPasswordController(request, response) {
 
       user.otp = verifyCode;
       user.otpExpiry = Date.now() + 600000;
-      
 
       await user.save();
 
@@ -426,3 +425,191 @@ export async function forgotPasswordController(request, response) {
     });
   }
 }
+
+export async function verifyForgotPasswordOtp(request, response) {
+  try {
+    const { email, otp } = request.body;
+    const user = await UserModel.findOne({ email: email });
+
+    if (!user) {
+      return response.status(400).json({
+        message: "Email not available",
+        error: true,
+        success: false,
+      });
+    }
+    if (!email || !otp) {
+      return response.status(400).json({
+        message: "Provide required field email, otp",
+        error: true,
+        success: false,
+      });
+    }
+    if (otp !== user.otp) {
+      return response.status(400).json({
+        message: "Invalid OTP",
+        error: true,
+        success: false,
+      });
+    }
+
+    const currentTime = Date.now();
+
+    if (user.otpExpiry < currentTime) {
+      return response.status(400).json({
+        message: "OTP is expired",
+        error: true,
+        success: false,
+      });
+    }
+
+    user.otp = "";
+    user.otpExpiry = "";
+    await user.save();
+
+    return response.status(200).json({
+      message: "Verify OTP Successfully ",
+      error: false,
+      success: true,
+    });
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+//reset password
+
+export async function resetPassword(request, response) {
+  try {
+    const { email, newPassword, confrimPassword } = request.body;
+
+    if (!email || !newPassword || !confrimPassword) {
+      return response.status(400).json({
+        message:
+          "Provide required fields email, New Password, Confrim Passwoed",
+      });
+    }
+
+    const user = await UserModel.findOne({ email });
+
+    if (!user) {
+      return response.status(400).json({
+        message: "Email is not Available",
+        error: true,
+        success: false,
+      });
+    }
+
+    if (newPassword !== confrimPassword) {
+      return response.status(400).json({
+        message: "new password and confrim password must be same.",
+        error: true,
+        success: false,
+      });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(confrimPassword, salt);
+
+    user.password = hashPassword;
+    await user.save();
+
+    return response.json({
+      message: "Password update successfully",
+      error: false,
+      success: true,
+    });
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+//refresh token controler
+export async function refreshToken(request, response) {
+  try {
+    const refreshToken = request.cookie.refreshToken || request?.headers?.authorization?.split("")[1];
+
+    if (!refreshToken) {
+      return response.status(401).json({
+        message: "Invalid token",
+        error: true,
+        success: false,
+      });
+    }
+
+    const verifyToken = await jwt.verify(refreshToken,process.env.SECRET_KEY_REFRESH_TOKEN);
+
+    if (!verifyToken) {
+      return response.status(401).json({
+        message: "Token is expired",
+        error: true,
+        success: false,
+      });
+    }
+
+    const userId = verifyToken?._id;
+    const newAccessToken = await generateAccessToken(userId)
+
+    const cookieOptions = {
+      httpOnly:true,
+      secure:true,
+      sameSite:"none"
+    }
+
+    response.cookie('accessToken',newAccessToken,cookieOptions)
+
+    return response.json({
+      message:"New Access token generate",
+      error:false,
+      success:true,
+      data:{
+        accessToken : newAccessToken
+      }
+    })
+
+
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+//get login user details
+export async function userDetails(request, response){
+
+  try {
+    const userId = request.user.id;
+    console.log(userId);
+    
+    const user = await UserModel.findById(userId).select('-password -refreshToken');
+
+    return response.json({
+      message:"user details",
+      data:user,
+      error:false,
+      success:true
+    })
+    
+  } catch (error) {
+    return response.status(500).json({
+      message:"Something is wrong",
+      error: true,
+      success: false,
+    });
+    
+  }
+
+}
+
+
