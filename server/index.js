@@ -7,6 +7,7 @@ import morgan from "morgan";
 import helmet from "helmet";
 import connectDb from "./config/connectDb.js";
 import userRouter from "./route/user.route.js";
+import categoryRouter from "./route/category.route.js";
 
 const app = express();
 app.use(cors());
@@ -22,6 +23,7 @@ app.get("/", (request, respons) => {
 });
 
 app.use("/api/user", userRouter);
+app.use("/api/category", categoryRouter);
 
 connectDb().then(() => {
   app.listen(process.env.PORT, () => {

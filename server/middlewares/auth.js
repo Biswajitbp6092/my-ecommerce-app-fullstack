@@ -8,7 +8,7 @@ const auth = (req, res, next) => {
 
     if (!token) {
       return res.status(401).json({
-        message: "Provide Token",
+        message: "User Not Registred",
       });
     }
 
