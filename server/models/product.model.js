@@ -1,104 +1,106 @@
 import mongoose from "mongoose";
 
-const productSchema = mongoose.Schema({
-    name:{
-        type:String,
-        required:true
+const productSchema = mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
     },
-    description:{
+    description: {
+      type: String,
+      required: true,
+    },
+    Images: [
+      {
         type: String,
-        required:true
-    },
-    Images:[
-        {
-            type:String,
-            required:true
-        }
+        required: true,
+      },
     ],
-    brand:{
-        type:String,
-        default:""
+    brand: {
+      type: String,
+      default: "",
     },
-    price:{
-        type: Number,
-        default:0
+    price: {
+      type: Number,
+      default: 0,
     },
-    oldPrice:{
-        type:Number,
-        default:0
+    oldPrice: {
+      type: Number,
+      default: 0,
     },
-    catName:{
-        type:String,
-        default:""
+    catName: {
+      type: String,
+      default: "",
     },
-    catId:{
-        type:String,
-        default:""
+    catId: {
+      type: String,
+      default: "",
     },
-    subCatId:{
-        type:String,
-        default:""
+    subCatId: {
+      type: String,
+      default: "",
     },
-    subCat:{
-        type:String,
-        default:""
+    subCat: {
+      type: String,
+      default: "",
     },
-    thirdSubCat:{
-        type:String,
-        default:""
+    thirdSubCat: {
+      type: String,
+      default: "",
     },
-    thirdSubCatId:{
-        type:String,
-        default:""
+    thirdSubCatId: {
+      type: String,
+      default: "",
     },
-    category:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Category',
-        required:true
+    category: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: true,
     },
-    countInStock:{
-        type:Number,
-        required:true
+    countInStock: {
+      type: Number,
+      required: true,
     },
-    rating:{
-        type:Number,
-        default:0,
+    rating: {
+      type: Number,
+      default: 0,
     },
-    isFeatured:{
-        type:Boolean,
-        default:false
+    isFeatured: {
+      type: Boolean,
+      default: false,
     },
-    discount:{
-        type:Number,
-        required:true,
+    discount: {
+      type: Number,
+      required: true,
     },
-    productRam:[
-        {
-            type:String,
-            default:null
-        }
+    productRam: [
+      {
+        type: String,
+        default: null,
+      },
     ],
-    size:[
-        {
-            type:String,
-            default:null
-        }
+    size: [
+      {
+        type: String,
+        default: null,
+      },
     ],
-    productWeight:[
-        {
-            type:String,
-            default:null
-        }
+    productWeight: [
+      {
+        type: String,
+        default: null,
+      },
     ],
-    dateCreated:{
-        type:Date,
-        default:Date.now,
-    }
+    dateCreated: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
-},{
-    timestamps:true
-});
+const ProductModel = mongoose.model("Product", productSchema);
 
-const ProductModel = mongoose.model('Product',productSchema)
-
-export default ProductModel
+export default ProductModel;
