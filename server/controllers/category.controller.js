@@ -20,7 +20,7 @@ export async function uploadImages(request, response) {
 
     const options = {
       use_filename: true,
-      unique_filername: false,
+      unique_filename: false,
       overwrite: false,
     };
 
@@ -272,6 +272,43 @@ export async function deleteCategory(request, response) {
   } catch (error) {
     return response.status(500).json({
       message: "Category not found",
+      error: true,
+      success: false,
+    });
+  }
+}
+
+//Update category
+export async function updatedCategory(request, response) {
+  try {
+    const category = await CategoryModel.findByIdAndUpdate(
+      request.params.id,
+      {
+        name: request.body.name,
+        images: imagesArr.length>0 ? imagesArr[0] : request.body.images,
+        parentCatName: request.body.parentCatName,
+        parentId: request.body.parentId,
+      },
+      {
+        new: true,
+      }
+    );
+    if(!category){
+      return response.status(500).json({
+        message:"Category can not be Updated!",
+        error:true,
+        success:false
+      })
+    }
+    imagesArr=[],
+    response.status(200).json({
+      error: false,
+      success:true,
+      category:category,
+    })
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
       error: true,
       success: false,
     });

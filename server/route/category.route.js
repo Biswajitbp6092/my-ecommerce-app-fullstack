@@ -9,6 +9,7 @@ import {
   getCategory,
   getSubCategoriesCount,
   removeImageFromCloudinary,
+  updatedCategory,
   uploadImages,
 } from "../controllers/category.controller.js";
 
@@ -22,5 +23,6 @@ categoryRouter.get("/get/count/subCat", getSubCategoriesCount);
 categoryRouter.get("/:id", getCategory);
 categoryRouter.delete("/deleteimage", auth, removeImageFromCloudinary);
 categoryRouter.delete("/:id", auth, deleteCategory);
+categoryRouter.put("/:id", auth, updatedCategory);
 
 export default categoryRouter;
