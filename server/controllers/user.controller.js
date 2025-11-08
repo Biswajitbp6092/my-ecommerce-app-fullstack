@@ -485,9 +485,9 @@ export async function verifyForgotPasswordOtp(request, response) {
 
 export async function resetPassword(request, response) {
   try {
-    const { email, newPassword, confrimPassword } = request.body;
+    const { email, newPassword, confirmPassword } = request.body;
 
-    if (!email || !newPassword || !confrimPassword) {
+    if (!email || !newPassword || !confirmPassword) {
       return response.status(400).json({
         message:
           "Provide required fields email, New Password, Confrim Passwoed",
@@ -504,7 +504,7 @@ export async function resetPassword(request, response) {
       });
     }
 
-    if (newPassword !== confrimPassword) {
+    if (newPassword !== confirmPassword) {
       return response.status(400).json({
         message: "new password and confrim password must be same.",
         error: true,
@@ -513,7 +513,7 @@ export async function resetPassword(request, response) {
     }
 
     const salt = await bcrypt.genSalt(10);
-    const hashPassword = await bcrypt.hash(confrimPassword, salt);
+    const hashPassword = await bcrypt.hash(confirmPassword, salt);
 
     user.password = hashPassword;
     await user.save();
