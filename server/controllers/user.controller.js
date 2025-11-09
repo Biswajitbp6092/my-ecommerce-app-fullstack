@@ -372,7 +372,13 @@ export async function updateUserDetails(request, response) {
       message: "User Update Successfully",
       error: false,
       success: true,
-      user: updateUser,
+      user: {
+        _id: updateUser?._id,
+        name: updateUser?.name,
+        email: updateUser?.email,
+        mobile: updateUser?.mobile,
+        avatar: updateUser?.avatar,
+      },
     });
   } catch (error) {
     return response.status(500).json({
@@ -535,7 +541,9 @@ export async function resetPassword(request, response) {
 //refresh token controler
 export async function refreshToken(request, response) {
   try {
-    const refreshToken = request.cookie.refreshToken || request?.headers?.authorization?.split("")[1];
+    const refreshToken =
+      request.cookie.refreshToken ||
+      request?.headers?.authorization?.split("")[1];
 
     if (!refreshToken) {
       return response.status(401).json({
@@ -545,7 +553,10 @@ export async function refreshToken(request, response) {
       });
     }
 
-    const verifyToken = await jwt.verify(refreshToken,process.env.SECRET_KEY_REFRESH_TOKEN);
+    const verifyToken = await jwt.verify(
+      refreshToken,
+      process.env.SECRET_KEY_REFRESH_TOKEN
+    );
 
     if (!verifyToken) {
       return response.status(401).json({
@@ -556,26 +567,24 @@ export async function refreshToken(request, response) {
     }
 
     const userId = verifyToken?._id;
-    const newAccessToken = await generateAccessToken(userId)
+    const newAccessToken = await generateAccessToken(userId);
 
     const cookieOptions = {
-      httpOnly:true,
-      secure:true,
-      sameSite:"none"
-    }
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    };
 
-    response.cookie('accessToken',newAccessToken,cookieOptions)
+    response.cookie("accessToken", newAccessToken, cookieOptions);
 
     return response.json({
-      message:"New Access token generate",
-      error:false,
-      success:true,
-      data:{
-        accessToken : newAccessToken
-      }
-    })
-
-
+      message: "New Access token generate",
+      error: false,
+      success: true,
+      data: {
+        accessToken: newAccessToken,
+      },
+    });
   } catch (error) {
     return response.status(500).json({
       message: error.message || error,
@@ -586,30 +595,26 @@ export async function refreshToken(request, response) {
 }
 
 //get login user details
-export async function userDetails(request, response){
-
+export async function userDetails(request, response) {
   try {
     const userId = request.user.id;
     console.log(userId);
-    
-    const user = await UserModel.findById(userId).select('-password -refreshToken');
+
+    const user = await UserModel.findById(userId).select(
+      "-password -refreshToken"
+    );
 
     return response.json({
-      message:"user details",
-      data:user,
-      error:false,
-      success:true
-    })
-    
+      message: "user details",
+      data: user,
+      error: false,
+      success: true,
+    });
   } catch (error) {
     return response.status(500).json({
-      message:"Something is wrong",
+      message: "Something is wrong",
       error: true,
       success: false,
     });
-    
   }
-
 }
-
-
