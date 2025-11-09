@@ -7,6 +7,7 @@ import generateAccessToken from "../utils/generatedAccessToken.js";
 import generateRefreshToken from "../utils/generatedRefreshToken.js";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
+import { error } from "console";
 
 // Configuration
 cloudinary.config({
@@ -491,10 +492,12 @@ export async function verifyForgotPasswordOtp(request, response) {
 
 export async function resetPassword(request, response) {
   try {
-    const { email, newPassword, confirmPassword } = request.body;
+    const { email, oldPassword, newPassword, confirmPassword } = request.body;
 
     if (!email || !newPassword || !confirmPassword) {
       return response.status(400).json({
+        error: true,
+        success: false,
         message:
           "Provide required fields email, New Password, Confrim Passwoed",
       });
@@ -508,6 +511,17 @@ export async function resetPassword(request, response) {
         error: true,
         success: false,
       });
+    }
+
+    const checkPassword = await bcrypt.compare(oldPassword, user.password);
+
+    if (!checkPassword) {
+      return response.status(400).json({
+        message: "Your Old password is Wrong",
+        error: true,
+        success: false,
+      });
+
     }
 
     if (newPassword !== confirmPassword) {
