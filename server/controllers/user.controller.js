@@ -492,6 +492,57 @@ export async function verifyForgotPasswordOtp(request, response) {
 
 export async function resetPassword(request, response) {
   try {
+    const { email, newPassword, confirmPassword } = request.body;
+
+    if (!email || !newPassword || !confirmPassword) {
+      return response.status(400).json({
+        error: true,
+        success: false,
+        message:
+          "Provide required fields email, New Password, Confrim Passwoed",
+      });
+    }
+
+    const user = await UserModel.findOne({ email });
+
+    if (!user) {
+      return response.status(400).json({
+        message: "Email is not Available",
+        error: true,
+        success: false,
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return response.status(400).json({
+        message: "new password and confrim password must be same.",
+        error: true,
+        success: false,
+      });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashPassword = await bcrypt.hash(confirmPassword, salt);
+
+    user.password = hashPassword;
+    await user.save();
+
+    return response.json({
+      message: "Password update successfully",
+      error: false,
+      success: true,
+    });
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+export async function ChangePassword(request, response) {
+  try {
     const { email, oldPassword, newPassword, confirmPassword } = request.body;
 
     if (!email || !newPassword || !confirmPassword) {
@@ -521,7 +572,6 @@ export async function resetPassword(request, response) {
         error: true,
         success: false,
       });
-
     }
 
     if (newPassword !== confirmPassword) {
