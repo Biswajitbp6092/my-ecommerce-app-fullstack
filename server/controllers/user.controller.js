@@ -664,9 +664,7 @@ export async function userDetails(request, response) {
     const userId = request.user.id;
     console.log(userId);
 
-    const user = await UserModel.findById(userId).select(
-      "-password -refreshToken"
-    );
+    const user = await UserModel.findById(userId).select("-password -refreshToken").populate('address_details');
 
     return response.json({
       message: "user details",
