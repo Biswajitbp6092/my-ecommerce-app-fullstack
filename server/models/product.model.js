@@ -10,7 +10,7 @@ const productSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    Images: [
+    images: [
       {
         type: String,
         required: true,
@@ -55,7 +55,6 @@ const productSchema = mongoose.Schema(
     category: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Category",
-     
     },
     countInStock: {
       type: Number,
@@ -72,6 +71,10 @@ const productSchema = mongoose.Schema(
     discount: {
       type: Number,
       required: true,
+    },
+    sale: {
+      type: Number,
+      default: 0,
     },
     productRam: [
       {

@@ -54,11 +54,12 @@ export async function createProduct(request, response) {
     let product = new ProductModel({
       name: request.body.name,
       description: request.body.description,
-      Images: imagesArr,
+      images: imagesArr,
       brand: request.body.brand,
       price: request.body.price,
       oldPrice: request.body.oldPrice,
       catName: request.body.catName,
+      category: request.body.category,
       catId: request.body.catId,
       subCatId: request.body.subCatId,
       subCat: request.body.subCat,
@@ -608,10 +609,10 @@ export async function deleteProduct(request, response) {
       });
     }
 
-    const Images = product.Images;
+    const images = product.images;
 
     let img = "";
-    for (img of Images) {
+    for (img of images) {
       const imgUrl = img;
       const urlArr = imgUrl.split("/");
       const image = urlArr[urlArr.length - 1];
@@ -650,7 +651,55 @@ export async function deleteProduct(request, response) {
   }
 }
 
-//Delete single products
+//delete multiple product
+export async function deleteMultipleProduct(request, response) {
+  const { ids } = request.body;
+  if (!ids || !Array.isArray(ids)) {
+    return response.status(400).json({
+      error: true,
+      success: false,
+      message: "Invalid input",
+    });
+  }
+
+  for (let i = 0; i < ids?.length; i++) {
+    const product = await ProductModel.findById(ids[i]);
+
+    const images = product.images;
+    let img = "";
+
+    for (img of images) {
+      const imgUrl = img;
+      const urlArr = imgUrl.split("/");
+      const image = urlArr[urlArr.length - 1];
+
+      const imageName = image.split(".")[0];
+
+      if (imageName) {
+        cloudinary.uploader.destroy(imageName, (error, result) => {
+          //console.log(error, result)
+        });
+      }
+    }
+  }
+
+  try {
+    await ProductModel.deleteMany({ _id: { $in: ids } });
+    return response.status(200).json({
+      message: 'Product Delete Succesfully',
+      error: false,
+      success: true,
+    });
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+//get single products
 export async function getProduct(request, response) {
   try {
     const product = await ProductModel.findById(request.params.id).populate(
