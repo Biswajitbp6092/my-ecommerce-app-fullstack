@@ -3,8 +3,17 @@ import auth from "../middlewares/auth.js";
 import upload from "../middlewares/multer.js";
 import {
   createProduct,
+  createProductRams,
+  createProductSize,
+  createProductWeight,
   deleteMultipleProduct,
+  deleteMultipleProductRams,
+  deleteMultipleProductSize,
+  deleteMultipleProductWeight,
   deleteProduct,
+  deleteProductRams,
+  deleteProductSize,
+  deleteProductWeight,
   getAllFeaturedProduct,
   getAllProduct,
   getAllProductByCatId,
@@ -16,9 +25,18 @@ import {
   getAllProductByThirdLavelCatId,
   getAllProductByThirdLavelCatName,
   getProduct,
+  getProductRams,
+  getProductRamsById,
   getProductsCount,
+  getProductSize,
+  getProductSizeById,
+  getProductWeight,
+  getProductWeightById,
   removeImageFromCloudinary,
   updateProduct,
+  updateProductRams,
+  updateProductSize,
+  updateProductWeight,
   uploadImages,
 } from "../controllers/product.controller.js";
 
@@ -42,5 +60,31 @@ productRouter.delete("/deleteMultiple", deleteMultipleProduct)
 productRouter.get("/:id",getProduct);
 productRouter.delete("/deleteimage", auth, removeImageFromCloudinary);
 productRouter.put("/updateProducts/:id", auth, updateProduct);
+
+// product Rams
+productRouter.post("/productRAMS/create", auth, createProductRams);
+productRouter.delete("/productRAMS/:id", auth, deleteProductRams);
+productRouter.put("/productRAMS/:id", auth, updateProductRams);
+productRouter.delete("/productRAMS/deleteMultipleRams", deleteMultipleProductRams)
+productRouter.get("/productRAMS/ramlist", getProductRams)
+productRouter.get("/productRAMS/:id",getProductRamsById);
+
+
+// product Weight
+productRouter.post("/productWeight/create", auth, createProductWeight);
+productRouter.delete("/productWeight/:id", auth, deleteProductWeight);
+productRouter.put("/productWeight/:id", auth, updateProductWeight);
+productRouter.delete("/productWeight/deleteMultipleWeight", deleteMultipleProductWeight)
+productRouter.get("/productWeight/Weightlist", getProductWeight)
+productRouter.get("/productWeight/:id",getProductWeightById);
+
+
+// product Size
+productRouter.post("/productSize/create", auth, createProductSize);
+productRouter.delete("/productSize/:id", auth, deleteProductSize);
+productRouter.put("/productSize/:id", auth, updateProductSize);
+productRouter.delete("/productSize/deleteMultipleSize", deleteMultipleProductSize)
+productRouter.get("/productSize/Sizelist", getProductSize)
+productRouter.get("/productSize/:id",getProductSizeById);
 
 export default productRouter;
