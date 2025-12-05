@@ -50,6 +50,42 @@ export async function uploadImages(request, response) {
   }
 }
 
+let bannerImage = [];
+export async function uploadBannerImages(request, response) {
+  try {
+    bannerImage = [];
+
+    const image = request.files;
+
+    const options = {
+      use_filename: true,
+      unique_filename: false,
+      overwrite: false,
+    };
+
+    for (let i = 0; i < image?.length; i++) {
+      const img = await cloudinary.uploader.upload(
+        image[i].path,
+        options,
+        function (error, result) {
+          bannerImage.push(result.secure_url);
+          fs.unlinkSync(`uploads/${request.files[i].filename}`);
+        }
+      );
+    }
+
+    return response.status(200).json({
+      images: bannerImage,
+    });
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
 //create products
 
 export async function createProduct(request, response) {
@@ -58,6 +94,9 @@ export async function createProduct(request, response) {
       name: request.body.name,
       description: request.body.description,
       images: imagesArr,
+      bannerimages: bannerImage,
+      bannerTitlename: request.body.bannerTitlename,
+      isDisplayOnHomeBanner: request.body.isDisplayOnHomeBanner,
       brand: request.body.brand,
       price: request.body.price,
       oldPrice: request.body.oldPrice,
@@ -761,6 +800,10 @@ export async function updateProduct(request, response) {
       {
         name: request.body.name,
         description: request.body.description,
+        images: request.body.images,
+        bannerimages: request.body.bannerimages,
+        bannerTitlename: request.body.bannerTitlename,
+        isDisplayOnHomeBanner: request.body.isDisplayOnHomeBanner,
         brand: request.body.brand,
         price: request.body.price,
         oldPrice: request.body.oldPrice,
@@ -778,7 +821,6 @@ export async function updateProduct(request, response) {
         productRam: request.body.productRam,
         size: request.body.size,
         productWeight: request.body.productWeight,
-        name: request.body.name,
       },
       {
         new: true,
@@ -986,7 +1028,6 @@ export async function getProductRamsById(request, response) {
   }
 }
 
-
 //=========================Product Weight================================
 
 //create product Weight
@@ -1166,12 +1207,7 @@ export async function getProductWeightById(request, response) {
   }
 }
 
-
-
-
-
 //=========================================================
-
 
 //create product Size
 export async function createProductSize(request, response) {
@@ -1349,4 +1385,3 @@ export async function getProductSizeById(request, response) {
     });
   }
 }
-
