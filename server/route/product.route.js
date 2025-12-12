@@ -14,6 +14,7 @@ import {
   deleteProductRams,
   deleteProductSize,
   deleteProductWeight,
+  filters,
   getAllFeaturedProduct,
   getAllProduct,
   getAllProductByCatId,
@@ -33,6 +34,7 @@ import {
   getProductWeight,
   getProductWeightById,  
   removeImageFromCloudinary,  
+  shortBy,  
   updateProduct,
   updateProductRams,
   updateProductSize,
@@ -88,5 +90,9 @@ productRouter.put("/productSize/:id", auth, updateProductSize);
 productRouter.delete("/productSize/deleteMultipleSize", deleteMultipleProductSize)
 productRouter.get("/productSize/Sizelist", getProductSize)
 productRouter.get("/productSize/:id",getProductSizeById);
+
+
+productRouter.post("/filters",filters);
+productRouter.post("/shortBy",shortBy);
 
 export default productRouter;

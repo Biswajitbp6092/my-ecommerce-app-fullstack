@@ -128,6 +128,88 @@ export async function verifyEmailController(request, response) {
   }
 }
 
+export async function authWithGoogle(request, response) {
+  const { name, email, password, avatar, mobile, role } = request.body;
+
+  try {
+    const existingUser = await UserModel.findOne({ email: email });
+    if (!existingUser) {
+      const user = await UserModel.create({
+        name: name,
+        mobile: mobile,
+        email: email,
+        password: "null",
+        avatar: avatar,
+        role: role,
+        verify_email: true,
+        signUpWithGoogle: true,
+      });
+
+      await user.save();
+
+      const accessToken = await generateAccessToken(user._id);
+      const refreshToken = await generateRefreshToken(user._id);
+
+      await UserModel.findByIdAndUpdate(user._id, {
+        last_login_date: new Date(),
+        // accessToken: accessToken,
+      });
+
+      const cookieOptions = {
+        httpOnly: true,
+        // secure: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "None",
+      };
+      response.cookie("accessToken", accessToken, cookieOptions);
+      response.cookie("refreshToken", refreshToken, cookieOptions);
+
+      return response.json({
+        message: "Login successful",
+        error: false,
+        success: true,
+        data: {
+          accessToken,
+          refreshToken,
+        },
+      });
+    } else {
+      const accessToken = await generateAccessToken(existingUser._id);
+      const refreshToken = await generateRefreshToken(existingUser._id);
+
+      await UserModel.findByIdAndUpdate(existingUser._id, {
+        last_login_date: new Date(),
+        // accessToken: accessToken,
+      });
+
+      const cookieOptions = {
+        httpOnly: true,
+        // secure: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "None",
+      };
+      response.cookie("accessToken", accessToken, cookieOptions);
+      response.cookie("refreshToken", refreshToken, cookieOptions);
+
+      return response.json({
+        message: "Login successful",
+        error: false,
+        success: true,
+        data: {
+          accessToken,
+          refreshToken,
+        },
+      });
+    }
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
 export async function loginUserController(request, response) {
   try {
     const { email, password } = request.body;
@@ -563,15 +645,16 @@ export async function ChangePassword(request, response) {
         success: false,
       });
     }
+    if (user?.signUpWithGoogle === false) {
+      const checkPassword = await bcrypt.compare(oldPassword, user.password);
 
-    const checkPassword = await bcrypt.compare(oldPassword, user.password);
-
-    if (!checkPassword) {
-      return response.status(400).json({
-        message: "Your Old password is Wrong",
-        error: true,
-        success: false,
-      });
+      if (!checkPassword) {
+        return response.status(400).json({
+          message: "Your Old password is Wrong",
+          error: true,
+          success: false,
+        });
+      }
     }
 
     if (newPassword !== confirmPassword) {
@@ -586,6 +669,7 @@ export async function ChangePassword(request, response) {
     const hashPassword = await bcrypt.hash(confirmPassword, salt);
 
     user.password = hashPassword;
+    user.signUpWithGoogle = false;
     await user.save();
 
     return response.json({
@@ -664,7 +748,9 @@ export async function userDetails(request, response) {
     const userId = request.user.id;
     console.log(userId);
 
-    const user = await UserModel.findById(userId).select("-password -refreshToken").populate('address_details');
+    const user = await UserModel.findById(userId)
+      .select("-password -refreshToken")
+      .populate("address_details");
 
     return response.json({
       message: "user details",

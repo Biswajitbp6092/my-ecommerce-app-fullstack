@@ -1,5 +1,6 @@
 import { Router } from "express";
 import {
+  authWithGoogle,
   ChangePassword,
   forgotPasswordController,
   loginUserController,
@@ -22,6 +23,7 @@ const userRouter = Router();
 userRouter.post("/register", registerUserController);
 userRouter.post("/verifyEmail", verifyEmailController);
 userRouter.post("/login", loginUserController);
+userRouter.post("/authWithGoogle", authWithGoogle);
 userRouter.get("/logout", auth, logoutController);
 userRouter.put("/user-avatar", auth,upload.array("avatar"),userAvatarController);
 userRouter.delete("/deleteimage", auth, removeImageFromCloudinary);

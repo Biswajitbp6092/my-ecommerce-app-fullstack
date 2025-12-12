@@ -1385,3 +1385,86 @@ export async function getProductSizeById(request, response) {
     });
   }
 }
+
+//product Filter
+
+export async function filters(request, response) {
+  const {
+    catId,
+    subCatId,
+    thirdSubCatId,
+    minPrice,
+    maxPrice,
+    rating,
+    page,
+    limit,
+  } = request.body;
+
+  const filters = {};
+
+  if (catId?.length) {
+    filters.catId = { $in: catId };
+  }
+  if (subCatId?.length) {
+    filters.subCatId = { $in: subCatId };
+  }
+  if (thirdSubCatId?.length) {
+    filters.thirdSubCatId = { $in: thirdSubCatId };
+  }
+  if (minPrice || maxPrice) {
+    filters.price = { $gte: +minPrice || 0, $lte: +maxPrice || Infinity };
+  }
+  if (rating?.length) {
+    filters.rating = { $in: rating };
+  }
+
+  try {
+    const products = await ProductModel.find(filters)
+      .populate("category")
+      .skip((page - 1) * limit)
+      .limit(parseInt(limit));
+
+    const total = await ProductModel.countDocuments(filters);
+
+    return response.status(200).json({
+      error: false,
+      success: true,
+      products: products,
+      total: total,
+      page: parseInt(page),
+      totalPage: Math.ceil(total / limit),
+    });
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+const sortItems = (products, sortBy, order) => {
+  return products.sort((a, b) => {
+    if (sortBy === "name") {
+      return order === "asc"
+        ? a.name.localeCompare(b.name)
+        : b.name.localeCompare(a.name);
+    }
+    if (sortBy === "price") {
+      return order === "asc" ? a.price - b.price : b.price - a.price;
+    }
+    return 0;
+  });
+};
+export async function shortBy(request, response) {
+  const { products, sortBy, order } = request.body;
+  const sortedItems = sortItems([...products?.products], sortBy, order);
+
+  return response.status(200).json({
+    error: false,
+    success: false,
+    products: sortedItems,
+    page:0,
+    totalPage:0,
+  });
+}
