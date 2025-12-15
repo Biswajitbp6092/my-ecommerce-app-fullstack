@@ -1,8 +1,10 @@
 import { Router } from "express";
 import {
+  addReview,
   authWithGoogle,
   ChangePassword,
   forgotPasswordController,
+  getReviews,
   loginUserController,
   logoutController,
   refreshToken,
@@ -25,7 +27,7 @@ userRouter.post("/verifyEmail", verifyEmailController);
 userRouter.post("/login", loginUserController);
 userRouter.post("/authWithGoogle", authWithGoogle);
 userRouter.get("/logout", auth, logoutController);
-userRouter.put("/user-avatar", auth,upload.array("avatar"),userAvatarController);
+userRouter.put("/user-avatar", auth, upload.array("avatar"), userAvatarController);
 userRouter.delete("/deleteimage", auth, removeImageFromCloudinary);
 userRouter.put("/:id", auth, updateUserDetails);
 userRouter.post("/forgot-password", forgotPasswordController);
@@ -33,7 +35,10 @@ userRouter.post("/verify-forgot-password-otp", verifyForgotPasswordOtp);
 userRouter.post("/change-password", ChangePassword);
 userRouter.post("/reset-password", resetPassword);
 userRouter.post("/refresh-token", refreshToken);
-userRouter.get("/user-details",auth, userDetails);
+userRouter.get("/user-details", auth, userDetails);
 
+//user Reviews
+userRouter.post("/addReview", auth, addReview);
+userRouter.get("/getReviews", getReviews);
 
 export default userRouter;
