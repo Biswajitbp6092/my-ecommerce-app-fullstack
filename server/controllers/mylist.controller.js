@@ -22,8 +22,8 @@ export const addToMyListController = async (request, response) => {
     if (item) {
       return response.status(400).json({
         message: "Item already in My List",
-        error: false,
-        success: true,
+        error: true,
+        success: false,
       });
     }
 
@@ -77,7 +77,7 @@ export const deleteToMyListController = async (request, response) => {
       });
     }
     return response.status(200).json({
-      message: "the item deleted form My List successfully",
+      message: "the item remove form My List",
       error: false,
       success: true,
     });
