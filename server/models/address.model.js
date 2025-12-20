@@ -32,6 +32,13 @@ const addressSchema = mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    landmark: {
+      type: String,
+    },
+    addresType: {
+      type: String,
+      enum: ["home", "work"],
+    },
     userId: {
       type: mongoose.Schema.ObjectId,
       default: "",
@@ -41,5 +48,5 @@ const addressSchema = mongoose.Schema(
     timestamps: true,
   }
 );
-const AddressModel = mongoose.model("Address",addressSchema);
+const AddressModel = mongoose.model("Address", addressSchema);
 export default AddressModel;

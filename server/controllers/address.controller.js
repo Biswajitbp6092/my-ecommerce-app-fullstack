@@ -1,49 +1,6 @@
 import AddressModel from "../models/address.model.js";
 import UserModel from "../models/user.model.js";
 
-// export const addAddressController = async (request, response) => {
-//   try {
-//     const { address_line, city, state, pin_code, country, mobile, status } =
-//       request.body;
-//     const userId = request.user.id;
-//     console.log(userId);
-//     console.log(address_line, city, state, pin_code, country, mobile, status);
-
-//     if (!address_line || !city || !state || !pin_code || !country || !mobile) {
-//       return response.status(500).json({
-//         message: "Please Provide all the Fields",
-//         error: true,
-//         success: false,
-//       });
-//     }
-
-//     const address = new AddressModel({address_line, city, state, pin_code, country, mobile, status, userId,});
-
-//     const saveAddress = await address.save();
-
-//     const updateAddress = await UserModel.updateOne(
-//       { _id: userId },
-//       {
-//         $push: {
-//           address_details: saveAddress?._id,
-//         },
-//       }
-//     );
-//     return response.status(200).json({
-//       data: saveAddress,
-//       message: "Address add Sucessfuly",
-//       error: false,
-//       success: true,
-//     });
-//   } catch (error) {
-//     return response.status(500).json({
-//       message: error.message || error,
-//       error: true,
-//       success: false,
-//     });
-//   }
-// };
-
 export const addAddressController = async (request, response) => {
   try {
     const {
@@ -53,9 +10,9 @@ export const addAddressController = async (request, response) => {
       pin_code,
       country,
       mobile,
-      status,
       userId,
-      selected,
+      landmark,
+      addresType,
     } = request.body;
 
     // if (!address_line || city || state || pin_code || country || mobile || userId) {
@@ -73,9 +30,9 @@ export const addAddressController = async (request, response) => {
       pin_code,
       country,
       mobile,
-      status,
       userId,
-      selected,
+      landmark,
+      addresType,
     });
 
     const saveAddress = await address.save();
@@ -245,7 +202,7 @@ export const deleteAddressController = async (request, response) => {
     );
 
     return response.status(200).json({
-      message: "address remove",
+      message: "Address remove",
       success: true,
       error: false,
       data: deleteItem,
@@ -258,3 +215,76 @@ export const deleteAddressController = async (request, response) => {
     });
   }
 };
+
+export const getSingleAddressController = async (request, response) => {
+  try {
+    const id = request.params.id;
+
+    const address = await AddressModel.findOne({ _id: id });
+
+    if (!address) {
+      return response.status(404).json({
+        message: "Address not Found",
+        error: true,
+        success: false,
+      });
+    }
+    return response.status(200).json({
+      error: false,
+      success: true,
+      address: address,
+    });
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+};
+
+//update user details
+export async function editAddress(request, response) {
+  try {
+    const id = request.params.id;
+    const {
+      address_line,
+      city,
+      state,
+      pin_code,
+      country,
+      mobile,
+      userId,
+      landmark,
+      addresType,
+    } = request.body;
+
+    const address = await AddressModel.findByIdAndUpdate(
+      id,
+      {
+        address_line: address_line,
+        city: city,
+        state: state,
+        pin_code: pin_code,
+        country: country,
+        mobile: mobile,
+        landmark: landmark,
+        addresType: addresType,
+      },
+      { new: true }
+    );
+
+    return response.json({
+      message: "Address Update Successfully",
+      error: false,
+      success: true,
+      address: address,
+    });
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
