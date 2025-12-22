@@ -20,7 +20,7 @@ const orderSchema = mongoose.Schema(
         price: {
           type: Number,
         },
-        Image: {
+        image: {
           type: String,
         },
         subTotal: {

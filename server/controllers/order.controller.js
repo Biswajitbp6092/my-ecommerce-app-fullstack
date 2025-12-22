@@ -52,7 +52,7 @@ export const createOrderController = async (request, response) => {
 
 export async function getOrderDetailsController(request, response) {
   try {
-    const userId = request.user.id;  // product id
+    const userId = request.user.id; // product id
 
     console.log(userId);
 
@@ -65,6 +65,34 @@ export async function getOrderDetailsController(request, response) {
       data: orderlist,
       error: false,
       success: true,
+    });
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+export async function updateOrderStatusController(request, response) {
+  try {
+    const { id, order_status } = request.body;
+
+    const updateOrder = await OrderModel.updateOne(
+      {
+        _id: id,
+      },
+      {
+        order_status: order_status,
+      },
+      { new: true }
+    );
+    return response.status(200).json({
+      message: "Update Order Status",
+      success: true,
+      error: false,
+      data: updateOrder,
     });
   } catch (error) {
     return response.status(500).json({
