@@ -743,7 +743,7 @@ export async function userDetails(request, response) {
     });
   } catch (error) {
     return response.status(500).json({
-      message: "Something is wrong",
+      message: error.message || error,
       error: true,
       success: false,
     });
@@ -772,7 +772,7 @@ export async function addReview(request, response) {
     });
   } catch (error) {
     return response.status(500).json({
-      message: "Something is wrong",
+      message: error.message || error,
       error: true,
       success: false,
     });
@@ -799,7 +799,101 @@ export async function getReviews(request, response) {
     });
   } catch (error) {
     return response.status(500).json({
-      message: "Something is wrong",
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+//get all reviews
+export async function getAllReviews(request, response) {
+  try {
+    const reviews = await ReviewModel.find();
+
+    if (!reviews) {
+      return response.status(400).json({
+        error: true,
+        success: false,
+      });
+    }
+    return response.status(200).json({
+      error: false,
+      success: true,
+      reviews: reviews,
+    });
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+//get all users
+export async function getAllUsers(request, response) {
+  try {
+    const users = await UserModel.find();
+
+    if (!users) {
+      return response.status(400).json({
+        error: true,
+        success: false,
+      });
+    }
+    return response.status(200).json({
+      error: false,
+      success: true,
+      users: users,
+    });
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false,
+    });
+  }
+}
+
+// delete multiple users
+export async function deleteMultiple(request, response) {
+  const { ids } = request.body;
+
+  if (!ids || !Array.isArray(ids) === 0) {
+    return response.status(400).json({
+      error: true,
+      success: false,
+      message: "Invalid input",
+    });
+  }
+  // for (let i = 0; i < ids.length; i++) {
+  //   const users = await UserModel.findById(ids[i]);
+
+  //   const images = users.images;
+
+  //   let img ="";
+
+  //   for (img of images) {
+  //     const imgUrl = img;
+  //     const urlArr = imgUrl.split("/");
+  //     const image = urlArr[urlArr.length - 1];
+
+  //     const imageName = image.split(".")[0];
+  //   }
+  // }
+
+  try {
+    await UserModel.deleteMany({ _id: { $in: ids } });
+
+    return response.status(200).json({
+      error: false,
+      success: true,
+      message: "Users deleted successfully",
+    });
+  } catch (error) {
+    return response.status(500).json({
+      message: error.message || error,
       error: true,
       success: false,
     });
